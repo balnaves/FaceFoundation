@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1AB58CAE196B81C40064B090 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB58CAD196B81C40064B090 /* AVFoundation.framework */; };
+		1AB58CB0196B81CE0064B090 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AB58CAF196B81CE0064B090 /* AVKit.framework */; };
+		1AB58CDA196DBDF80064B090 /* TMFFView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB58CD9196DBDF80064B090 /* TMFFView.m */; };
+		1AB58CDC196EF1D80064B090 /* readme.md in Resources */ = {isa = PBXBuildFile; fileRef = 1AB58CDB196EF1D80064B090 /* readme.md */; };
 		1AF76B3A196B587000DA95E5 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AF76B39196B587000DA95E5 /* Cocoa.framework */; };
 		1AF76B44196B587000DA95E5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1AF76B42196B587000DA95E5 /* InfoPlist.strings */; };
 		1AF76B46196B587000DA95E5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AF76B45196B587000DA95E5 /* main.m */; };
@@ -32,6 +36,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1AB58CAD196B81C40064B090 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		1AB58CAF196B81CE0064B090 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		1AB58CD8196DBDF80064B090 /* TMFFView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TMFFView.h; sourceTree = "<group>"; };
+		1AB58CD9196DBDF80064B090 /* TMFFView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TMFFView.m; sourceTree = "<group>"; };
+		1AB58CDB196EF1D80064B090 /* readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = readme.md; sourceTree = "<group>"; };
 		1AF76B36196B587000DA95E5 /* FaceFoundation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FaceFoundation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1AF76B39196B587000DA95E5 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		1AF76B3C196B587000DA95E5 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -59,6 +68,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1AB58CB0196B81CE0064B090 /* AVKit.framework in Frameworks */,
+				1AB58CAE196B81C40064B090 /* AVFoundation.framework in Frameworks */,
 				1AF76B3A196B587000DA95E5 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -78,6 +89,7 @@
 		1AF76B2D196B587000DA95E5 = {
 			isa = PBXGroup;
 			children = (
+				1AB58CDB196EF1D80064B090 /* readme.md */,
 				1AF76B3F196B587000DA95E5 /* FaceFoundation */,
 				1AF76B60196B587000DA95E5 /* FaceFoundationTests */,
 				1AF76B38196B587000DA95E5 /* Frameworks */,
@@ -97,6 +109,8 @@
 		1AF76B38196B587000DA95E5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1AB58CAF196B81CE0064B090 /* AVKit.framework */,
+				1AB58CAD196B81C40064B090 /* AVFoundation.framework */,
 				1AF76B39196B587000DA95E5 /* Cocoa.framework */,
 				1AF76B5B196B587000DA95E5 /* XCTest.framework */,
 				1AF76B3B196B587000DA95E5 /* Other Frameworks */,
@@ -119,6 +133,8 @@
 			children = (
 				1AF76B4B196B587000DA95E5 /* TMFFDocument.h */,
 				1AF76B4C196B587000DA95E5 /* TMFFDocument.m */,
+				1AB58CD8196DBDF80064B090 /* TMFFView.h */,
+				1AB58CD9196DBDF80064B090 /* TMFFView.m */,
 				1AF76B4E196B587000DA95E5 /* TMFFDocument.xib */,
 				1AF76B51196B587000DA95E5 /* MainMenu.xib */,
 				1AF76B54196B587000DA95E5 /* Images.xcassets */,
@@ -238,6 +254,7 @@
 				1AF76B55196B587000DA95E5 /* Images.xcassets in Resources */,
 				1AF76B4A196B587000DA95E5 /* Credits.rtf in Resources */,
 				1AF76B50196B587000DA95E5 /* TMFFDocument.xib in Resources */,
+				1AB58CDC196EF1D80064B090 /* readme.md in Resources */,
 				1AF76B53196B587000DA95E5 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -258,6 +275,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AF76B46196B587000DA95E5 /* main.m in Sources */,
+				1AB58CDA196DBDF80064B090 /* TMFFView.m in Sources */,
 				1AF76B4D196B587000DA95E5 /* TMFFDocument.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -356,6 +374,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -389,6 +411,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;
 			};
@@ -402,6 +428,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FaceFoundation/FaceFoundation-Prefix.pch";
 				INFOPLIST_FILE = "FaceFoundation/FaceFoundation-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/opencv/2.4.9/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -415,6 +445,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FaceFoundation/FaceFoundation-Prefix.pch";
 				INFOPLIST_FILE = "FaceFoundation/FaceFoundation-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/opencv/2.4.9/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -479,6 +513,7 @@
 				1AF76B6C196B587000DA95E5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		1AF76B6D196B587000DA95E5 /* Build configuration list for PBXNativeTarget "FaceFoundationTests" */ = {
 			isa = XCConfigurationList;
@@ -487,6 +522,7 @@
 				1AF76B6F196B587000DA95E5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
