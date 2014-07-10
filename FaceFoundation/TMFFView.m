@@ -10,7 +10,7 @@
 #define FREEWHEELING_PERIOD_IN_SECONDS 0.5
 #define ADVANCE_INTERVAL_IN_SECONDS 0.1
 
-#define CREATE_CA_FACE_LAYERS 1
+#define CREATE_CA_FACE_LAYERS 0
 
 #pragma mark - TMFFLayer
 
@@ -189,7 +189,26 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 	}
     
 #if CREATE_CA_FACE_LAYERS
+    [self findFacesAndAdjustLayersForPixelBuffer:pixelBuffer];
+#else
+    [self findFacesAndDrawBoundingRectsForPixelBuffer:pixelBuffer];
+#endif
     
+	// Enqueue sample buffers which will be displayed at their above set presentationTimeStamp
+	if (self.videoLayer.readyForMoreMediaData)
+    {
+		[self.videoLayer enqueueSampleBuffer:sampleBuffer];
+	}
+    
+	CFRelease(sampleBuffer);
+}
+
+/**
+ Creates and positions a CALayer for each detected face in the CVPixelBuffer.
+ If a face is no longer detected, the CALayer is removed.
+ */
+- (void)findFacesAndAdjustLayersForPixelBuffer:(CVPixelBufferRef)pixelBuffer
+{
     // Create a CIImage from the CV video image buffer so we can run the face detector against it.
     CIImage *image = [[CIImage alloc] initWithCVImageBuffer:pixelBuffer];
     
@@ -204,36 +223,8 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
     NSMutableSet *currentTrackingIDs = [NSMutableSet set];
     for (CIFaceFeature *faceFeature in features)
     {
-        // The feature bounds are relative to the full frame of video, so we need to work out
-        // where to place the sublayer relative to the frame of the AVSampleBufferDisplayLayer.
-        // It would be nice if the layer exposed the transformation it made on the video frame,
-        // but we can work it out ourselves.
-        CGRect faceBounds = faceFeature.bounds;
-        
-        CGFloat scale = 1.f;
-        CGFloat translationX = 0.f;
-        CGFloat translationY = 0.f;
-        
-        CGFloat aspectSource = image.extent.size.width / image.extent.size.height;
-        CGFloat aspectLayer = self.layer.frame.size.width / self.layer.frame.size.height;
-        
-        if (aspectLayer > aspectSource)
-        {
-            // Extra space on sides
-            scale = self.layer.frame.size.height / image.extent.size.height;
-            translationX = (self.layer.frame.size.width - image.extent.size.width * scale) / 2;
-        }
-        else
-        {
-            // Extra space on top and bottom
-            scale = self.layer.frame.size.width / image.extent.size.width;
-            translationY = (self.layer.frame.size.height - image.extent.size.height * scale) / 2;
-        }
-        
-        CGAffineTransform transform = CGAffineTransformConcat(CGAffineTransformMakeScale(scale, scale),
-                                                              CGAffineTransformMakeTranslation(translationX, translationY));
-        
-        CGRect transformedBounds = CGRectApplyAffineTransform(faceBounds, transform);
+        CGRect faceBounds = [self transformRect:faceFeature.bounds
+                                   forVideoSize:CGSizeMake(image.extent.size.width, image.extent.size.height)];
         
         if (faceFeature.trackingFrameCount == 1)
         {
@@ -244,7 +235,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
             faceLayer.borderColor = [NSColor orangeColor].CGColor;
             faceLayer.borderWidth = 2;
             faceLayer.cornerRadius = 5;
-            faceLayer.frame = transformedBounds;
+            faceLayer.frame = faceBounds;
             
             [self.faceLayers setObject:faceLayer forKey:@(faceFeature.trackingID)];
             [self.layer addSublayer:faceLayer];
@@ -253,7 +244,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
         {
             // This face is still in frame and detectable
             TMFFLayer *faceLayer = [self.faceLayers objectForKey:@(faceFeature.trackingID)];
-            faceLayer.frame = transformedBounds;
+            faceLayer.frame = faceBounds;
             
             // Set the frame to green if the person is smiling! :)
             faceLayer.borderColor = faceFeature.hasSmile ? [NSColor greenColor].CGColor : [NSColor orangeColor].CGColor;
@@ -277,16 +268,91 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
     
     // Finally remove the trackingIDs from our dictionary
     [self.faceLayers removeObjectsForKeys:[removedTrackingIDs allObjects]];
+}
+
+/**
+ Draw a rectangle around each detected face in the CVPixelBuffer.
+ */
+- (void)findFacesAndDrawBoundingRectsForPixelBuffer:(CVPixelBufferRef)pixelBuffer
+{
+    //
+    // Create a CGBitmap context from the CVPixelBuffer so we can draw into it.
+    //
+    CVPixelBufferLockBaseAddress(pixelBuffer, 0);
     
-#endif
+    CGColorSpaceRef cs = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
     
-	// Enqueue sample buffers which will be displayed at their above set presentationTimeStamp
-	if (self.videoLayer.readyForMoreMediaData)
+    size_t bitsPerComponent = 8;
+    CGBitmapInfo alphaInfo = kCGBitmapByteOrder32Host | kCGImageAlphaNoneSkipFirst;
+    
+    // context to draw in, set to pixel buffer's address
+    CGContextRef context = CGBitmapContextCreate(CVPixelBufferGetBaseAddress(pixelBuffer),
+                                                 CVPixelBufferGetWidth(pixelBuffer),
+                                                 CVPixelBufferGetHeight(pixelBuffer),
+                                                 bitsPerComponent,
+                                                 CVPixelBufferGetBytesPerRow(pixelBuffer),
+                                                 cs,
+                                                 alphaInfo);
+    
+    if (context)
     {
-		[self.videoLayer enqueueSampleBuffer:sampleBuffer];
-	}
+        // draw
+        NSGraphicsContext *nsctxt = [NSGraphicsContext graphicsContextWithGraphicsPort:context flipped:NO];
+        
+        [NSGraphicsContext saveGraphicsState];
+        [NSGraphicsContext setCurrentContext:nsctxt];
+        
+        // Create a CIImage from the CV video image buffer so we can run the face detector against it.
+        CIImage *image = [[CIImage alloc] initWithCVImageBuffer:pixelBuffer];
+        
+        // Run the CIDetector
+        NSDictionary *options = @{ CIDetectorSmile: @(YES), CIDetectorEyeBlink: @(NO),};
+        NSArray *features = [self.detector featuresInImage:image options:options];
+        
+        // Iterate over the detected face features and draw rectangles accordingly.
+        for (CIFaceFeature *faceFeature in features)
+        {
+            [[NSColor orangeColor] setStroke];
+            
+            NSFrameRect(NSRectFromCGRect(faceFeature.bounds));
+        }
+        [NSGraphicsContext restoreGraphicsState];
+    }
+    CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+}
+
+/**
+ The feature bounds are relative to the full frame of video, so we need to work out
+ where to place the sublayer relative to the frame of the AVSampleBufferDisplayLayer.
+ It would be nice if the layer exposed the transformation it made on the video frame,
+ but we can work it out ourselves.
+ */
+- (CGRect)transformRect:(CGRect)rect forVideoSize:(CGSize)size
+{
+    CGFloat scale = 1.f;
+    CGFloat translationX = 0.f;
+    CGFloat translationY = 0.f;
     
-	CFRelease(sampleBuffer);
+    CGFloat aspectSource = size.width / size.height;
+    CGFloat aspectLayer = self.layer.frame.size.width / self.layer.frame.size.height;
+    
+    if (aspectLayer > aspectSource)
+    {
+        // Extra space on sides
+        scale = self.layer.frame.size.height / size.height;
+        translationX = (self.layer.frame.size.width - size.width * scale) / 2;
+    }
+    else
+    {
+        // Extra space on top and bottom
+        scale = self.layer.frame.size.width / size.width;
+        translationY = (self.layer.frame.size.height - size.height * scale) / 2;
+    }
+    
+    CGAffineTransform transform = CGAffineTransformConcat(CGAffineTransformMakeScale(scale, scale),
+                                                          CGAffineTransformMakeTranslation(translationX, translationY));
+    
+    return CGRectApplyAffineTransform(rect, transform);
 }
 
 #pragma mark -
@@ -322,10 +388,9 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
         
 		if (CMTimeGetSeconds(elapsedTime) > FREEWHEELING_PERIOD_IN_SECONDS)
 		{
-			// No new images for a while.  Shut down the display link to conserve power, but request a wakeup call if new images are coming.
-			
+			// No new images for a while.  Shut down the display link to conserve power,
+            // but request a wakeup call if new images are coming.
 			CVDisplayLinkStop(displayLink);
-			
 			[playerItemVideoOutput requestNotificationOfMediaDataChangeWithAdvanceInterval:ADVANCE_INTERVAL_IN_SECONDS];
 		}
 	}
